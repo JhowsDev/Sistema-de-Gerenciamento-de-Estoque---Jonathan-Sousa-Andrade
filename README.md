@@ -1,1 +1,0 @@
-# Sistema-de-Gerenciamento-de-Estoque---Jonathan-Sousa-Andrade

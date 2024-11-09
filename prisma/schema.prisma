@@ -1,0 +1,121 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id Int @id @default(autoincrement())
+  fullName String @map("full-name") @db.VarChar(100)
+  email String @unique @db.VarChar(100)
+  password String @db.VarChar(255)
+  role AccountRole @default(USER)
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  moviments MovimentHistory[]
+  shoping Shoping[]
+
+  @@map("accounts")
+}
+
+model Maneger {
+  id Int @id @default(autoincrement())
+  fullName String @map("full-name") @db.VarChar(100)
+  email String @unique @db.VarChar(100)
+  password String @db.VarChar(255)
+  role AccountRole @default(MANEGER)
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  Shopings Shoping[]
+
+  @@map("managers")
+}
+
+enum AccountRole {
+  MANEGER
+  STOCKIST
+  USER
+}
+
+model Product {
+  id Int @id @default(autoincrement())
+  name String @db.VarChar(255)
+  categoryId Int @map("category-id")
+  quantity Int
+  street ProductStreets
+  minLimitItens Int @map("min-limit-itens")
+  maxLimitItens Int @map("max-limit-itens")
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  moviments MovimentHistory[]
+  Shopings Shoping[]
+  
+  category Category @relation(fields: [categoryId], references: [id])
+  @@map("products")
+}
+
+enum ProductStreets {
+  A1
+  A2
+  A3
+  B1
+  B2
+  B3
+  C1
+  C2
+  C3
+}
+
+model Category {
+  id Int @id @default(autoincrement())
+  nameCategory String @db.VarChar(100)
+  createdAt DateTime @default(now()) @map("created-at")
+  updatedAt DateTime @updatedAt @map("updated-at")
+  products Product[]
+
+  @@map("categorys")
+}
+
+model MovimentHistory {
+  id Int @id @default(autoincrement())
+  movimentType Moviments @map("moviment-type")
+  accountId Int @map("account-id")
+  quantity Int
+  movimentTime DateTime @default(now()) @map("moviment-time")
+  product Product[]
+
+  account Account @relation(fields: [accountId], references: [id])
+  @@map("moviments-history")
+}
+
+enum Moviments {
+  ENTRIE
+  EXIT
+}
+
+model Shoping {
+  id Int @id @default(autoincrement())
+  productId Int @map("product-id")
+  quantity Int
+  movimentType Moviments @map("moviment-type")
+  requestTime DateTime @default(now())
+  userId Int @map("user-id")
+  manegerId Int @map("manager-id")
+  aproved Boolean @default(false)
+  rejected Boolean @default(false)
+
+  product Product @relation(fields: [productId], references: [id])
+  user Account @relation(fields: [userId], references: [id])
+  maneger Maneger @relation(fields: [manegerId], references: [id])
+
+  @@map("shopings")
+}
