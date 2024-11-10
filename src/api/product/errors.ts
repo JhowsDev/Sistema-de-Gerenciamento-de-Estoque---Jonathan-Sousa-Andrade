@@ -50,3 +50,9 @@ export class DuplicatedAprovadRequestConflict extends ConflictError {
     super(message);
   }
 }
+
+export class NotAprovadRequestManegerConflict extends ConflictError {
+  constructor(public message: string = "This is not the approving manager") {
+    super(message);
+  }
+}

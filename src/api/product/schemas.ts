@@ -1,6 +1,6 @@
 import { Moviments, ProductStreets } from "@prisma/client";
 import { z } from "zod";
-import { movimentHistorySchema } from "../history/schemas";
+import { accountSchema } from "../account/schemas";
 
 export const productSchema = z.object({
   id: z.number().positive().int(),
@@ -10,6 +10,7 @@ export const productSchema = z.object({
   street: z.nativeEnum(ProductStreets),
   minLimitItens: z.number().positive().int(),
   maxLimitItens: z.number().positive().int(),
+  createdById: z.number().positive().int(),
   createdAt: z.date(),
   updatedAt: z.date(),
 });
@@ -26,10 +27,13 @@ export const productUpdateSchema = productCreateSchema
   })
   .partial();
 
-export const sendProductSchema = movimentHistorySchema.omit({
-  id: true,
-  accountId: true,
-  movimentTime: true,
+export const productDeleteShema = productSchema.pick({
+  createdById: true,
+});
+
+export const productOutputSchema = productSchema.pick({
+  createdById: true,
+  quantity: true,
 });
 
 export const shopingSchema = z.object({
@@ -48,4 +52,10 @@ export const requestProductSchema = shopingSchema.omit({
   id: true,
   requestTime: true,
   aproved: true,
+});
+
+export const requestAprovateSchema = accountSchema.pick({
+  fullName: true,
+  role: true,
+  email: true,
 });

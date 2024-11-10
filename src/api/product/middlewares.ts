@@ -8,7 +8,7 @@ export function isStokist(req: Request, res: Response, next: NextFunction) {
     throw new ForbiddenError();
   }
 
-  req.body.accountId = Number(decodedToken.sub);
+  req.body.createdById = Number(decodedToken.sub);
   req.body.movimentType = "EXIT";
 
   return next();
@@ -35,7 +35,8 @@ export function isManeger(req: Request, res: Response, next: NextFunction) {
   }
 
   req.body.userId = Number(decodedToken.sub);
-  req.body.movimentType = "ENTRIE";
+
+  req.body = decodedToken;
 
   return next();
 }

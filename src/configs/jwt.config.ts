@@ -1,10 +1,6 @@
 import jwt from "jsonwebtoken";
 import { parsedEnv } from "./env.config";
 
-/*
-  - Stateless -> Não precisa ser armazenado no banco
-  API_KEY
-*/
 export function generateToken(payload: object = {}, userId: number) {
   const secret = parsedEnv.JWT_SECRET;
 

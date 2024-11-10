@@ -7,8 +7,6 @@ import cors from "cors";
 
 export const app = express();
 
-// WHITELIST -> Posso definir quais dominios a minha api aceita receber requisições (se for necessario)
-// Por padrão, quando definido o cors, ela aceitará de qualquer dominio
 app.use(cors());
 app.use(express.json());
 

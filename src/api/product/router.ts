@@ -6,7 +6,10 @@ import { ProductService } from "./service";
 import { container } from "tsyringe";
 import {
   productCreateSchema,
+  productDeleteShema,
+  productOutputSchema,
   productUpdateSchema,
+  requestAprovateSchema,
   requestProductSchema,
 } from "./schemas";
 import { isManeger, isStokist, isUser } from "./middlewares";
@@ -43,15 +46,16 @@ productRouter.delete(
   "/:id",
   isAuthenticated,
   isStokist,
+  validateBody(productDeleteShema),
   productController.delete
 );
 
 productRouter.post(
-  "/send/:id",
+  "/output/:id",
   isAuthenticated,
   isStokist,
-  validateBody(movimentHistoryCreateSchema),
-  productController.sellProduct
+  validateBody(productOutputSchema),
+  productController.productOutput
 );
 
 productRouter.post(
@@ -62,9 +66,30 @@ productRouter.post(
   productController.requestProduct
 );
 
+productRouter.get(
+  "/request/all",
+  isAuthenticated,
+  productController.findAllRequests
+);
+
+productRouter.get(
+  "/request/unique/:id",
+  isAuthenticated,
+  productController.findRquestById
+);
+
 productRouter.post(
   "/request/aprove/:id",
   isAuthenticated,
   isManeger,
-  productController.aproveShoping
+  validateBody(requestAprovateSchema),
+  productController.aproveRequest
+);
+
+productRouter.post(
+  "/request/reprove/:id",
+  isAuthenticated,
+  isManeger,
+  validateBody(requestAprovateSchema),
+  productController.reproveRequest
 );

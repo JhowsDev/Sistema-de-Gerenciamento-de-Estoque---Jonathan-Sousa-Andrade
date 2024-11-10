@@ -6,6 +6,8 @@ export const movimentHistorySchema = z.object({
   movimentType: z.nativeEnum(Moviments),
   accountId: z.number().positive().int(),
   quantity: z.number().positive().int(),
+  productId: z.number().positive().int(),
+  currentQuantity: z.number().positive().int(),
   movimentTime: z.date(),
 });
 

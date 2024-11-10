@@ -24,7 +24,7 @@ export class SessionService {
     }
 
     const token = generateToken(
-      { fullName: account.fullName, role: account.role },
+      { fullName: account.fullName, role: account.role, email: account.email },
       account.id
     );
 

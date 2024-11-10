@@ -1,6 +1,7 @@
 import { Request, Response } from "express";
 import { IProductService } from "./interfaces";
 import { inject, injectable } from "tsyringe";
+import { prisma } from "../../../prisma/prisma.client";
 
 @injectable()
 export class ProductController {
@@ -42,16 +43,16 @@ export class ProductController {
   };
 
   public delete = async (req: Request, res: Response) => {
-    await this.productService.delete(Number(req.params.id));
+    await this.productService.delete(Number(req.params.id), req.body);
   };
 
-  public sellProduct = async (req: Request, res: Response) => {
-    const product = await this.productService.sellProduct(
+  public productOutput = async (req: Request, res: Response) => {
+    const product = await this.productService.productOutput(
       Number(req.params.id),
       req.body
     );
 
-    res.status(201).json(product);
+    res.status(200).json(product);
   };
 
   public requestProduct = async (req: Request, res: Response) => {
@@ -60,9 +61,31 @@ export class ProductController {
     res.status(201).json(request);
   };
 
-  public aproveShoping = async (req: Request, res: Response) => {
-    const request = await this.productService.aproveShoping(
-      Number(req.params.id)
+  public findAllRequests = async (req: Request, res: Response) => {
+    const requests = await this.productService.findRequests();
+
+    res.status(200).json(requests);
+  };
+
+  public findRquestById = async (req: Request, res: Response) => {
+    const request = await this.productService.findById(Number(req.params.id));
+
+    return res.status(200).json(request);
+  };
+
+  public aproveRequest = async (req: Request, res: Response) => {
+    const request = await this.productService.aproveRequest(
+      Number(req.params.id),
+      req.body
+    );
+
+    res.status(201).json(request);
+  };
+
+  public reproveRequest = async (req: Request, res: Response) => {
+    const request = await this.productService.reproveRequest(
+      Number(req.params.id),
+      req.body
     );
 
     res.status(201).json(request);

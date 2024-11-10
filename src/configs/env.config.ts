@@ -9,8 +9,6 @@ const envSchema = z.object({
 function validateEnvVars() {
   const parseResult = envSchema.safeParse(process.env);
 
-  // console.log(process.env);
-
   if (!parseResult.success) {
     parseResult.error.errors.forEach(({ path, message }) => {
       return console.error(`Enviroment variable ${path}: ${message}`);

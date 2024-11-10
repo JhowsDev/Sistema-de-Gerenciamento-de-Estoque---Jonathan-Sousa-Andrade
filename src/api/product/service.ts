@@ -2,13 +2,17 @@ import { prisma } from "../../../prisma/prisma.client";
 import {
   IProductService,
   ProductCreate,
+  ProductDelete,
+  productOutput,
   ProductUpdate,
+  RequestAprovate,
   RequestProduct,
 } from "./interfaces";
 import {
   CategoryNotFound,
   DuplicatedAprovadRequestConflict,
   ManegerNotFound,
+  NotAprovadRequestManegerConflict,
   NotEnoughProductsConflict,
   ProductAlreadUsedError,
   ProductNotFound,
@@ -17,6 +21,7 @@ import {
 } from "./errors";
 import { injectable } from "tsyringe";
 import { MovimentHistoryCreate } from "../history/interfaces";
+
 @injectable()
 export class ProductService implements IProductService {
   public create = async (payload: ProductCreate) => {
@@ -38,6 +43,16 @@ export class ProductService implements IProductService {
 
     const newProduct = await prisma.product.create({ data: payload });
 
+    const moviment = {
+      productId: newProduct.id,
+      movimentType: "ENTRIE",
+      accountId: Number(payload.createdById),
+      quantity: Number(payload.quantity),
+      currentQuantity: newProduct.quantity,
+    } as MovimentHistoryCreate;
+
+    await prisma.movimentHistory.create({ data: moviment });
+
     return newProduct;
   };
 
@@ -51,7 +66,10 @@ export class ProductService implements IProductService {
     const products = await prisma.product.findMany({});
 
     const emergencyProducts = products.filter((product) => {
-      if (product.quantity > product.maxLimitItens) {
+      if (
+        product.quantity > product.maxLimitItens ||
+        product.quantity < product.minLimitItens
+      ) {
         return true;
       }
 
@@ -92,13 +110,23 @@ export class ProductService implements IProductService {
     return updatedProduct;
   };
 
-  public delete = async (id: number) => {
-    await this.findById(id);
+  public delete = async (id: number, payload: ProductDelete) => {
+    const product = await this.findById(id);
 
     await prisma.product.delete({ where: { id } });
+
+    const moviment = {
+      productId: product.id,
+      movimentType: "EXIT",
+      accountId: payload.createdById,
+      quantity: product.quantity,
+      currentQuantity: 0,
+    } as MovimentHistoryCreate;
+
+    await prisma.movimentHistory.create({ data: moviment });
   };
 
-  public sellProduct = async (id: number, payload: MovimentHistoryCreate) => {
+  public productOutput = async (id: number, payload: productOutput) => {
     const product = await this.findById(id);
 
     const { quantity } = product;
@@ -109,12 +137,20 @@ export class ProductService implements IProductService {
       throw new NotEnoughProductsConflict();
     }
 
-    const newProductQuantity = prisma.product.update({
+    const newProductQuantity = await prisma.product.update({
       data: { quantity: newQuantity },
       where: { id },
     });
 
-    await prisma.movimentHistory.create({ data: { ...payload } });
+    const moviment = {
+      productId: product.id,
+      movimentType: "EXIT",
+      accountId: payload.createdById,
+      quantity: payload.quantity,
+      currentQuantity: newProductQuantity.quantity,
+    } as MovimentHistoryCreate;
+
+    await prisma.movimentHistory.create({ data: moviment });
 
     return newProductQuantity;
   };
@@ -135,13 +171,13 @@ export class ProductService implements IProductService {
     return shoping;
   };
 
-  public findShopings = async () => {
+  public findRequests = async () => {
     const shopings = await prisma.shoping.findMany();
 
     return shopings;
   };
 
-  public findShopingById = async (id: number) => {
+  public findRequestsById = async (id: number) => {
     const shoping = await prisma.shoping.findUnique({ where: { id } });
 
     if (!shoping) {
@@ -151,8 +187,8 @@ export class ProductService implements IProductService {
     return shoping;
   };
 
-  public aproveShoping = async (id: number) => {
-    const shoping = await this.findShopingById(id);
+  public aproveRequest = async (id: number, payload: RequestAprovate) => {
+    const shoping = await this.findRequestsById(id);
     const product = await this.findById(shoping.productId);
 
     if (shoping.rejected) {
@@ -163,6 +199,14 @@ export class ProductService implements IProductService {
       throw new DuplicatedAprovadRequestConflict();
     }
 
+    const IsManagerByAprovate = await prisma.maneger.findUnique({
+      where: { email: payload.email },
+    });
+
+    if (IsManagerByAprovate?.id !== shoping.manegerId) {
+      throw new NotAprovadRequestManegerConflict();
+    }
+
     const newQuantity = product.quantity + shoping.quantity;
 
     const newShoping = await prisma.shoping.update({
@@ -170,15 +214,17 @@ export class ProductService implements IProductService {
       data: { aproved: true },
     });
 
-    await prisma.product.update({
+    const newProduct = await prisma.product.update({
       where: { id: shoping.productId },
       data: { quantity: newQuantity },
     });
 
     const moviment = {
+      productId: product.id,
       movimentType: "ENTRIE",
       accountId: Number(shoping.userId),
       quantity: Number(shoping.quantity),
+      currentQuantity: newProduct.quantity,
     } as MovimentHistoryCreate;
 
     await prisma.movimentHistory.create({ data: moviment });
@@ -186,13 +232,26 @@ export class ProductService implements IProductService {
     return newShoping;
   };
 
-  public reproveShoping = async (id: number) => {
+  public reproveRequest = async (id: number, payload: RequestAprovate) => {
     const shoping = await prisma.shoping.findUnique({ where: { id } });
 
     if (!shoping) {
       throw new ProductNotFound();
     }
 
-    return shoping;
+    const newShoping = await prisma.shoping.update({
+      where: { id },
+      data: { rejected: true },
+    });
+
+    if (shoping.rejected) {
+      throw new RejectedRequestConflict();
+    }
+
+    if (shoping.aproved) {
+      throw new DuplicatedAprovadRequestConflict();
+    }
+
+    return newShoping;
   };
 }

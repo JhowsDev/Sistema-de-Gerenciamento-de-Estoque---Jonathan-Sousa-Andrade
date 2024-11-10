@@ -23,6 +23,7 @@ model Account {
   updatedAt DateTime @updatedAt @map("updated-at")
   moviments MovimentHistory[]
   shoping Shoping[]
+  products Product[]
 
   @@map("accounts")
 }
@@ -54,12 +55,14 @@ model Product {
   street ProductStreets
   minLimitItens Int @map("min-limit-itens")
   maxLimitItens Int @map("max-limit-itens")
+  createdById Int
   createdAt DateTime @default(now()) @map("created-at")
   updatedAt DateTime @updatedAt @map("updated-at")
   moviments MovimentHistory[]
   Shopings Shoping[]
   
   category Category @relation(fields: [categoryId], references: [id])
+  accourt Account @relation(fields: [createdById], references: [id])
   @@map("products")
 }
 
@@ -82,17 +85,19 @@ model Category {
   updatedAt DateTime @updatedAt @map("updated-at")
   products Product[]
 
-  @@map("categorys")
+  @@map("categories")
 }
 
 model MovimentHistory {
   id Int @id @default(autoincrement())
   movimentType Moviments @map("moviment-type")
   accountId Int @map("account-id")
+  productId Int @map("product-id")
   quantity Int
+  currentQuantity Int @map("current-quantity")
   movimentTime DateTime @default(now()) @map("moviment-time")
-  product Product[]
 
+  product Product @relation(fields: [productId], references: [id])
   account Account @relation(fields: [accountId], references: [id])
   @@map("moviments-history")
 }

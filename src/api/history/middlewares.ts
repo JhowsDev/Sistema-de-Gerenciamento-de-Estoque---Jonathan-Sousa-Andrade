@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ApiError } from "../@shared/errors";
+import { ApiError, ForbiddenError } from "../@shared/errors";
 import { verifyToken } from "../../configs";
 
 export function isAuthenticated(
@@ -20,6 +20,16 @@ export function isAuthenticated(
   }
 
   res.locals.decodedToken = verifyToken(token);
+
+  return next();
+}
+
+export function isManeger(req: Request, res: Response, next: NextFunction) {
+  const { decodedToken } = res.locals;
+
+  if (decodedToken.role !== "MANEGER") {
+    throw new ForbiddenError();
+  }
 
   return next();
 }
