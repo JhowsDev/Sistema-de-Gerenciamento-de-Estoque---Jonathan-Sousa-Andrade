@@ -1,6 +1,6 @@
 Olá Sejam muito bem vindos a minha API de sistema de Gerenciamento de estoque!
 
-Nela você será capas de:
+Nela você será capaz de:
 
 * Criar, editar, excluir e consultar contas com divisões de cargos
 
@@ -19,6 +19,8 @@ Nela você será capas de:
 * Realizar a aprovação ou reprovação da requisição desde que seja do cargo de "MANEGER" ( Gerente ), e o gerente destacado na requisição
 
 * Realizar a consulta do historico de movimentações esde que seja do cargo de "MANEGER" ( Gerente )
+
+BASE URL: https://inventory-management-system-yit6.onrender.com
 
 ## ROTAS
 
